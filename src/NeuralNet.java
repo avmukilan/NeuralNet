@@ -1,3 +1,5 @@
+import jdk.nashorn.internal.runtime.Source;
+
 import java.util.ArrayList;
 import java.util.Random;
 import java.io.*;
@@ -133,6 +135,17 @@ public class NeuralNet {
 			evaluate(examples.get(l));
 			evaluateGradients(results.get(l));
 			evaluateWeightsDelta();
+
+			for(int layer = 1; layer< layerOfTheNeuralNet.size(); layer ++){
+				for (int neuron = 1; neuron < layerOfTheNeuralNet.get(layer).getNeurons().size(); neuron++) {
+					float[] weights = layerOfTheNeuralNet.get(layer).getWeights(neuron);
+					StringBuilder builder = new StringBuilder();
+					for (float weight : weights) {
+						builder.append(weight + ",");
+					}
+					System.out.println(builder);
+				}
+			}
 		}
 
 		updateWeights(learning_rate);
@@ -148,12 +161,12 @@ public class NeuralNet {
 		//}
 	}
 
-	private ArrayList<NeuralLayer> layerOfTheNeuralNet;
+	protected ArrayList<NeuralLayer> layerOfTheNeuralNet;
 	private ArrayList<float[][]> deltaWeights;
 	private ArrayList<float[]> gradEx;
 
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 
 		ArrayList<float[]> examples = new ArrayList<float[]>();
 		ArrayList<float[]> category = new ArrayList<float[]>();
@@ -184,14 +197,31 @@ public class NeuralNet {
 			categoryWine.add(outcome);
 		}
 
-		int nn_neurons[] = { 20, 5, 1 };
+
+		BufferedReader reader = new BufferedReader(new FileReader("/Users/mukilanashokvijaya/IdeaProjects/NeuralNet/src/diabeties.txt"));
+		String line = null;
+		ArrayList<float[]> examplesDiabeties = new ArrayList<float[]>();
+		ArrayList<float[]> categoryDiabeties = new ArrayList<float[]>();
+		while((line = reader.readLine()) != null){
+			String[] split = line.split(",");
+			float[] features = new float[split.length - 1];
+			for(int i = 0 ; i < features.length ; i++){
+				features[i] = Float.valueOf(split[i]);
+			}
+			float[] outcome = new float[1];
+			outcome[0] = split[split.length -1 ].equalsIgnoreCase("positive") ? 1 : 0;
+			examplesDiabeties.add(features);
+			categoryDiabeties.add(outcome);
+		}
+
+		int nn_neurons[] = { 8, 3, 1 };
 
 		NeuralNet neuralNet = new NeuralNet(nn_neurons);
 
 		try {
 			PrintWriter fout = new PrintWriter(new FileWriter("code.py"));
 
-			for (int i = 0; i < 20; ++i) {
+			for (int i = 0; i < 100; ++i) {
 				neuralNet.learn(examplesWine, categoryWine, 0.3f);
 				//System.out.println("Learn " + i + " Done");
 
